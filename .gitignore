@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.bin/
+.buildozer/
+.bin
+*.apk
+.env
+.idea/
+.vscode/
+web/node_modules/
+app/.buildozer/
+app/bin/
