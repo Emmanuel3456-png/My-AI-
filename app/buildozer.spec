@@ -15,6 +15,9 @@ fullscreen = 0
 android.permissions = INTERNET,RECORD_AUDIO,CAMERA,READ_EXTERNAL_STORAGE,READ_MEDIA_IMAGES
 android.api = 34
 android.minapi = 23
+android.ndk = 25b
+android.buildtools_version = 34.0.0
+android.accept_sdk_license = True
 android.archs = arm64-v8a
 p4a.bootstrap = sdl2
 
