@@ -3,6 +3,7 @@ title = Quantum Mind
 package.name = quantummind
 package.domain = org.quantummind
 source.dir = .
+source.filename = Main.py
 source.include_exts = py,png,jpg,jpeg,webp,kv,atlas,json,mp3,mp4,txt
 version = 3.0.0
 # Note: pymupdf (used only for reading scanned/image-only PDF pages) is a
