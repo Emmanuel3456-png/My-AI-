@@ -5,16 +5,16 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build APK with official Buildozer
-        run: |
-          docker run --rm \
-            -v "$GITHUB_WORKSPACE/app":/home/user/hostcwd \
-            kivy/buildozer:latest \
-            android debug
+      - name: Build APK
+        uses: digreatbrian/buildozer-action@v2
+        with:
+          python-version: "3.11"
+          work-dir: app
+          buildozer-cmd: buildozer -v android debug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
