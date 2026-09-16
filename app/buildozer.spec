@@ -10,7 +10,7 @@ version = 3.0.0
 # compiled package. It installs fine with `pip install pymupdf` for running
 # on a computer, but it is not guaranteed to build for Android through
 # python-for-android - test an Android build before relying on that feature.
-requirements = python3==3.11.10,kivy==2.3.0
+requirements = hostpython3==3.11.10,python3==3.11.10,kivy==2.3.0
 orientation = portrait
 fullscreen = 0
 android.permissions = INTERNET,RECORD_AUDIO,CAMERA,READ_EXTERNAL_STORAGE,READ_MEDIA_IMAGES
