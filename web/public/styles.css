@@ -125,3 +125,27 @@ h2 { font-size: clamp(26px, 4vw, 40px); }
   nav { display: none; }
   .nav, footer, main { padding-left: 22px; padding-right: 22px; }
 }
+
+.talk-body { background: #07090c; }
+.talk-shell {
+  display: grid;
+  grid-template-columns: minmax(220px, 320px) 1fr;
+  min-height: calc(100vh - 70px);
+}
+.talk-side { border-right: 1px solid rgba(255,255,255,0.08); padding: 28px 22px; }
+.talk-side img { width: 100%; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.08); }
+.talk-main { display: flex; flex-direction: column; min-height: calc(100vh - 70px); }
+.log { flex: 1; overflow: auto; padding: 22px; display: flex; flex-direction: column; gap: 14px; }
+.msg { border: 1px solid rgba(255,255,255,0.08); padding: 14px 16px; background: rgba(16,20,26,0.72); }
+.msg strong { display: block; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #9aa3ad; margin-bottom: 8px; }
+.msg p { margin: 0; line-height: 1.55; white-space: pre-wrap; }
+.ask { display: flex; gap: 8px; padding: 16px; border-top: 1px solid rgba(255,255,255,0.08); }
+.ask input {
+  flex: 1; min-height: 46px; border: 1px solid rgba(255,255,255,0.08);
+  background: #0c1014; color: #e8eaed; padding: 0 14px; font-size: 16px;
+}
+.status { color: #9aa3ad; font-size: 13px; }
+@media (max-width: 800px) {
+  .talk-shell { grid-template-columns: 1fr; }
+  .talk-side { display: none; }
+}
