@@ -44,6 +44,9 @@ async function send(text) {
       pending.appendChild(pic);
     }
     speak(reply);
+        if (window.qmRec) {
+          setTimeout(function () { window.qmRec.start(); }, 800);
+        }
   } catch (_) {
     pending.textContent = "Core busy. Wait a few seconds.";
   }
@@ -57,6 +60,7 @@ form.addEventListener("submit", (e) => {
 const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
 if (Speech) {
   const rec = new Speech();
+  window.qmRec = rec;
   rec.lang = "en-US";
   mic.onclick = () => { rec.start(); mic.textContent = "Listening"; };
   rec.onresult = (e) => { mic.textContent = "Mic"; send(e.results[0][0].transcript); };
