@@ -24,16 +24,27 @@ app.post("/api/chat", async (req, res) => {
   if (!message) return res.status(400).json({ error: "Type a question first." });
   if (!key) return res.json({ reply: "Add GROQ_API_KEY in Render." });
   try {
-    if (wantsImage(message) && process.env.OPENAI_API_KEY) {
+   if (wantsImage(message) && process.env.OPENAI_API_KEY) {
       const imgRes = await fetch("https://api.openai.com/v1/images/generations", {
         method: "POST",
-        headers: { Authorization: "Bearer " + process.env.OPENAI_API_KEY, "Content-Type": "application/json" },
-        body: JSON.stringify({ model: "dall-e-3", prompt: "Family-friendly digital art. " + message, size: "1024x1024" })
+        headers: {
+          Authorization: "Bearer " + process.env.OPENAI_API_KEY,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: "dall-e-2",
+          prompt: "Family-friendly digital art. " + message,
+          size: "512x512",
+          n: 1
+        })
       });
       const img = await imgRes.json();
       const url = img.data && img.data[0] && img.data[0].url;
       if (url) return res.json({ reply: "Here is an image.", image: url });
-    }
+      return res.json({
+        reply: "Image core said: " + ((img.error && img.error.message) || "no image returned")
+      });
+    } 
     let extra = "";
     if (wantsSearch(message) && process.env.TAVILY_API_KEY) {
       const sRes = await fetch("https://api.tavily.com/search", {

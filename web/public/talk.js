@@ -33,9 +33,16 @@ async function send(text) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ message: text })
     });
-    const data = await res.json();
     const reply = data.reply || data.error || "No reply.";
     pending.textContent = reply;
+    if (data.image) {
+      const pic = document.createElement("img");
+      pic.src = data.image;
+      pic.style.maxWidth = "220px";
+      pic.style.borderRadius = "8px";
+      pic.style.marginTop = "8px";
+      pending.appendChild(pic);
+    }
     speak(reply);
   } catch (_) {
     pending.textContent = "Core busy. Wait a few seconds.";
