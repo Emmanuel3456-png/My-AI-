@@ -1,7 +1,7 @@
 html, body.talk-body {
   margin: 0;
   background:
-    linear-gradient(180deg, rgba(6,10,16,0.82), rgba(6,10,16,0.9)),
+    linear-gradient(180deg, rgba(6,10,16,0.45), rgba(6,10,16,0.58)),
     url("/assets/core.jpg") center top / cover no-repeat fixed;
   color: #e8eaed;
   overflow-x: hidden;
