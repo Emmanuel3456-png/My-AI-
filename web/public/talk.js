@@ -12,9 +12,13 @@ function speak(text) {
 }
 function add(role, text) {
   const item = document.createElement("article");
-  item.className = "msg " + role;
-  item.innerHTML = "<strong>" + (role === "user" ? "You" : "Quantum Mind") + "</strong><p></p>";
-  item.querySelector("p").textContent = text;
+  item.className = "bubble-row " + role;
+  if (role === "bot") {
+    item.innerHTML = '<img class="logo" src="/assets/core.jpg" alt="" /><div class="bubble"></div>';
+  } else {
+    item.innerHTML = '<div class="bubble"></div>';
+  }
+  item.querySelector(".bubble").textContent = text;
   log.appendChild(item);
   log.scrollTop = log.scrollHeight;
 }
@@ -22,7 +26,7 @@ async function send(text) {
   if (!text) return;
   add("user", text);
   add("bot", "Thinking…");
-  const pending = log.lastElementChild;
+  const pending = log.lastElementChild.querySelector(".bubble");
   try {
     const res = await fetch("/api/chat", {
       method: "POST",
@@ -31,17 +35,17 @@ async function send(text) {
     });
     const data = await res.json();
     const reply = data.reply || data.error || "No reply.";
-    pending.querySelector("p").textContent = reply;
+    pending.textContent = reply;
     speak(reply);
   } catch (_) {
-    pending.querySelector("p").textContent = "Core busy. Wait 10 seconds if the free server was asleep.";
+    pending.textContent = "Core busy. Wait a few seconds.";
   }
 }
 form.addEventListener("submit", (e) => {
   e.preventDefault();
-  const text = input.value.trim();
+  const t = input.value.trim();
   input.value = "";
-  send(text);
+  send(t);
 });
 const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
 if (Speech) {
@@ -50,10 +54,8 @@ if (Speech) {
   mic.onclick = () => { rec.start(); mic.textContent = "Listening"; };
   rec.onresult = (e) => { mic.textContent = "Mic"; send(e.results[0][0].transcript); };
   rec.onend = () => { mic.textContent = "Mic"; };
-} else {
-  mic.disabled = true;
 }
-add("bot", "Quantum Mind is ready. Created by Emmanuel Abraham. Type or tap Mic.");
+add("bot", "Quantum Mind is ready. Created by Emmanuel Abraham.");
 fetch("/api/chat-status").then(r => r.json()).then(d => {
   statusEl.textContent = d.ready ? "Cloud core online." : "Cloud core waiting.";
-}).catch(() => { statusEl.textContent = "Core unreachable."; });
+}).catch(() => {});
