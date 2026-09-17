@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Talk — Quantum Mind</title>
   <link rel="icon" href="/assets/core.jpg" />
   <link rel="stylesheet" href="/styles.css" />
@@ -10,25 +10,15 @@
 <body class="talk-body">
   <header class="nav">
     <a class="brand" href="/">QUANTUM MIND</a>
-    <nav>
-      <a href="/">Home</a>
-      <a href="/talk.html">Talk</a>
-    </nav>
   </header>
-  <main class="talk-shell">
-    <aside class="talk-side">
-      <img src="/assets/core.jpg" alt="Quantum Mind core" />
-      <p class="eyebrow">NEURAL CORE</p>
-      <h1>Talk</h1>
-      <p id="key-status" class="status">Checking core…</p>
-    </aside>
-    <section class="talk-main">
-      <div id="log" class="log"></div>
-      <form id="ask" class="ask">
-        <input id="q" type="text" maxlength="2000" placeholder="Ask Quantum Mind" required />
-        <button class="btn primary" type="submit">Send</button>
-      </form>
-    </section>
+  <main class="talk-main talk-main-only">
+    <p id="key-status" class="status">Checking core…</p>
+    <div id="log" class="log"></div>
+    <form id="ask" class="ask">
+      <button id="mic" class="btn ghost" type="button">Mic</button>
+      <input id="q" type="text" maxlength="2000" placeholder="Type or tap Mic" required />
+      <button class="btn primary" type="submit">Send</button>
+    </form>
   </main>
   <script src="/talk.js"></script>
 </body>

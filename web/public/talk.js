@@ -2,15 +2,14 @@ const log = document.getElementById("log");
 const form = document.getElementById("ask");
 const input = document.getElementById("q");
 const statusEl = document.getElementById("key-status");
+const mic = document.getElementById("mic");
 
 function speak(text) {
   if (!window.speechSynthesis) return;
   window.speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
-  u.rate = 1;
   window.speechSynthesis.speak(u);
 }
-
 function add(role, text) {
   const item = document.createElement("article");
   item.className = "msg " + role;
@@ -19,22 +18,8 @@ function add(role, text) {
   log.appendChild(item);
   log.scrollTop = log.scrollHeight;
 }
-
-async function checkStatus() {
-  try {
-    const res = await fetch("/api/chat-status");
-    const data = await res.json();
-    statusEl.textContent = data.ready ? "Cloud core online." : "Cloud core waiting.";
-  } catch (_) {
-    statusEl.textContent = "Core unreachable.";
-  }
-}
-
-form.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const text = input.value.trim();
+async function send(text) {
   if (!text) return;
-  input.value = "";
   add("user", text);
   add("bot", "Thinking…");
   const pending = log.lastElementChild;
@@ -49,9 +34,26 @@ form.addEventListener("submit", async (event) => {
     pending.querySelector("p").textContent = reply;
     speak(reply);
   } catch (_) {
-    pending.querySelector("p").textContent = "Could not reach the core.";
+    pending.querySelector("p").textContent = "Core busy. Wait 10 seconds if the free server was asleep.";
   }
+}
+form.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const text = input.value.trim();
+  input.value = "";
+  send(text);
 });
-
-add("bot", "Quantum Mind is ready. Ask anything legal and appropriate.");
-checkStatus();
+const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+if (Speech) {
+  const rec = new Speech();
+  rec.lang = "en-US";
+  mic.onclick = () => { rec.start(); mic.textContent = "Listening"; };
+  rec.onresult = (e) => { mic.textContent = "Mic"; send(e.results[0][0].transcript); };
+  rec.onend = () => { mic.textContent = "Mic"; };
+} else {
+  mic.disabled = true;
+}
+add("bot", "Quantum Mind is ready. Created by Emmanuel Abraham. Type or tap Mic.");
+fetch("/api/chat-status").then(r => r.json()).then(d => {
+  statusEl.textContent = d.ready ? "Cloud core online." : "Cloud core waiting.";
+}).catch(() => { statusEl.textContent = "Core unreachable."; });
