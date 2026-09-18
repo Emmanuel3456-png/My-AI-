@@ -33,7 +33,8 @@ async function send(text) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ message: text })
     });
-    const reply = data.reply || data.error || "No reply.";
+    const data = await res.json();
+        const reply = data.reply || data.error || "No reply.";
     pending.textContent = reply;
     if (data.image) {
       const pic = document.createElement("img");
