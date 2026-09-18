@@ -3,28 +3,44 @@ const form = document.getElementById("ask");
 const input = document.getElementById("q");
 const statusEl = document.getElementById("key-status");
 const mic = document.getElementById("mic");
+const menu = document.getElementById("menu");
+const scrim = document.getElementById("scrim");
+const menuBtn = document.getElementById("menuBtn");
+const modeTag = document.getElementById("modeTag");
+const hints = document.getElementById("hints");
+const projectsEl = document.getElementById("projects");
+let mode = "general";
+let voiceOn = true;
+const HINTS = [
+  "Who created Quantum Mind?",
+  "Explain gravity in simple words",
+  "Help me plan a study timetable",
+  "Search the latest news about space",
+  "Write a short Python hello program",
+  "What is a neural network?"
+];
 
 function speak(text) {
-  if (!window.speechSynthesis) return;
+  if (!voiceOn || !window.speechSynthesis) return;
   window.speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text);
-  window.speechSynthesis.speak(u);
+  window.speechSynthesis.speak(new SpeechSynthesisUtterance(text));
 }
-
 function add(role, text) {
   const item = document.createElement("article");
   item.className = "bubble-row " + role;
-  if (role === "bot") {
-    item.innerHTML = '<img class="logo" src="/assets/core.jpg" alt="" /><div class="bubble"></div>';
-  } else {
-    item.innerHTML = '<div class="bubble"></div>';
-  }
+  item.innerHTML = role === "bot"
+    ? '<img class="logo" src="/assets/core.jpg" alt="" /><div class="bubble"></div>'
+    : '<div class="bubble"></div>';
   item.querySelector(".bubble").textContent = text;
   log.appendChild(item);
   log.scrollTop = log.scrollHeight;
   return item.querySelector(".bubble");
 }
-
+function packed(text) {
+  if (mode === "coding") return "Coding mode. Give a short, clear program or explanation.\n" + text;
+  if (mode === "study") return "Study mode. Explain step by step for a student.\n" + text;
+  return text;
+}
 async function send(text) {
   if (!text) return;
   add("user", text);
@@ -33,32 +49,66 @@ async function send(text) {
     const res = await fetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: text })
+      body: JSON.stringify({ message: packed(text) })
     });
     const data = await res.json();
     const reply = data.reply || data.error || "No reply.";
     pending.textContent = reply;
-    if (data.image) {
-      const pic = document.createElement("img");
-      pic.src = data.image;
-      pic.style.maxWidth = "220px";
-      pic.style.borderRadius = "8px";
-      pic.style.marginTop = "8px";
-      pending.appendChild(pic);
-    }
     speak(reply);
   } catch (err) {
     pending.textContent = "Core busy. Wait a few seconds.";
   }
 }
-
+function closeMenu() { menu.hidden = true; scrim.hidden = true; }
+function setMode(next) {
+  mode = next;
+  modeTag.textContent = next === "coding" ? "Coding" : next === "study" ? "Study" : "General";
+  closeMenu();
+}
+function renderProjects() {
+  const list = JSON.parse(localStorage.getItem("qmProjects") || "[]");
+  projectsEl.innerHTML = "";
+  list.forEach(function (name) {
+    const row = document.createElement("div");
+    row.className = "project-item";
+    row.textContent = name;
+    projectsEl.appendChild(row);
+  });
+}
 form.addEventListener("submit", function (event) {
   event.preventDefault();
   const text = input.value.trim();
   input.value = "";
   send(text);
 });
-
+menuBtn.addEventListener("click", function () {
+  menu.hidden = !menu.hidden;
+  scrim.hidden = menu.hidden;
+});
+scrim.addEventListener("click", closeMenu);
+menu.addEventListener("click", function (event) {
+  const btn = event.target.closest("button");
+  if (!btn) return;
+  if (btn.dataset.mode) setMode(btn.dataset.mode);
+  if (btn.dataset.act === "new") {
+    log.innerHTML = "";
+    add("bot", "New chat. Created by Emmanuel Abraham.");
+    closeMenu();
+  }
+  if (btn.dataset.act === "voice") {
+    voiceOn = !voiceOn;
+    btn.textContent = voiceOn ? "Voice on" : "Voice off";
+    if (!voiceOn) window.speechSynthesis.cancel();
+  }
+  if (btn.dataset.act === "project") {
+    const name = window.prompt("Project name");
+    if (!name) return;
+    const list = JSON.parse(localStorage.getItem("qmProjects") || "[]");
+    list.push(name);
+    localStorage.setItem("qmProjects", JSON.stringify(list));
+    renderProjects();
+  }
+});
 const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
 if (Speech && mic) {
   const rec = new Speech();
@@ -72,17 +122,17 @@ if (Speech && mic) {
     mic.textContent = "Mic";
     send(event.results[0][0].transcript);
   };
-  rec.onend = function () {
-    mic.textContent = "Mic";
-  };
+  rec.onend = function () { mic.textContent = "Mic"; };
 }
-
-add("bot", "Quantum Mind is ready. Created by Emmanuel Abraham. Type or tap Mic.");
-fetch("/api/chat-status")
-  .then(function (res) { return res.json(); })
-  .then(function (data) {
-    statusEl.textContent = data.ready ? "Cloud core online." : "Cloud core waiting.";
-  })
-  .catch(function () {
-    statusEl.textContent = "Core unreachable.";
-  });
+HINTS.forEach(function (text, i) {
+  const el = document.createElement("div");
+  el.className = "hint";
+  el.textContent = text;
+  el.style.animationDelay = (i * 7) + "s";
+  hints.appendChild(el);
+});
+renderProjects();
+add("bot", "Quantum Mind is ready. Created by Emmanuel Abraham.");
+fetch("/api/chat-status").then(function (res) { return res.json(); }).then(function (data) {
+  statusEl.textContent = data.ready ? "Cloud core online." : "Cloud core waiting.";
+}).catch(function () { statusEl.textContent = "Core unreachable."; });
