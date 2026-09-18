@@ -10,6 +10,7 @@ function speak(text) {
   const u = new SpeechSynthesisUtterance(text);
   window.speechSynthesis.speak(u);
 }
+
 function add(role, text) {
   const item = document.createElement("article");
   item.className = "bubble-row " + role;
@@ -21,12 +22,13 @@ function add(role, text) {
   item.querySelector(".bubble").textContent = text;
   log.appendChild(item);
   log.scrollTop = log.scrollHeight;
+  return item.querySelector(".bubble");
 }
+
 async function send(text) {
   if (!text) return;
   add("user", text);
-  add("bot", "Thinking…");
-  const pending = log.lastElementChild.querySelector(".bubble");
+  const pending = add("bot", "Thinking…");
   try {
     const res = await fetch("/api/chat", {
       method: "POST",
@@ -34,7 +36,7 @@ async function send(text) {
       body: JSON.stringify({ message: text })
     });
     const data = await res.json();
-        const reply = data.reply || data.error || "No reply.";
+    const reply = data.reply || data.error || "No reply.";
     pending.textContent = reply;
     if (data.image) {
       const pic = document.createElement("img");
@@ -45,29 +47,42 @@ async function send(text) {
       pending.appendChild(pic);
     }
     speak(reply);
-        if (window.qmRec) {
-          setTimeout(function () { window.qmRec.start(); }, 800);
-        }
-  } catch (_) {
+  } catch (err) {
     pending.textContent = "Core busy. Wait a few seconds.";
   }
 }
-form.addEventListener("submit", (e) => {
-  e.preventDefault();
-  const t = input.value.trim();
+
+form.addEventListener("submit", function (event) {
+  event.preventDefault();
+  const text = input.value.trim();
   input.value = "";
-  send(t);
+  send(text);
 });
+
 const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
-if (Speech) {
+if (Speech && mic) {
   const rec = new Speech();
-  window.qmRec = rec;
   rec.lang = "en-US";
-  mic.onclick = () => { rec.start(); mic.textContent = "Listening"; };
-  rec.onresult = (e) => { mic.textContent = "Mic"; send(e.results[0][0].transcript); };
-  rec.onend = () => { mic.textContent = "Mic"; };
+  mic.addEventListener("click", function () {
+    window.speechSynthesis.cancel();
+    rec.start();
+    mic.textContent = "Listening";
+  });
+  rec.onresult = function (event) {
+    mic.textContent = "Mic";
+    send(event.results[0][0].transcript);
+  };
+  rec.onend = function () {
+    mic.textContent = "Mic";
+  };
 }
-add("bot", "Quantum Mind is ready. Created by Emmanuel Abraham.");
-fetch("/api/chat-status").then(r => r.json()).then(d => {
-  statusEl.textContent = d.ready ? "Cloud core online." : "Cloud core waiting.";
-}).catch(() => {});
+
+add("bot", "Quantum Mind is ready. Created by Emmanuel Abraham. Type or tap Mic.");
+fetch("/api/chat-status")
+  .then(function (res) { return res.json(); })
+  .then(function (data) {
+    statusEl.textContent = data.ready ? "Cloud core online." : "Cloud core waiting.";
+  })
+  .catch(function () {
+    statusEl.textContent = "Core unreachable.";
+  });

@@ -32,7 +32,7 @@ app.post("/api/chat", async (req, res) => {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          model: "dall-e-2",
+          model: "gpt-image-1",
           prompt: "Family-friendly digital art. " + message,
           size: "512x512",
           n: 1
