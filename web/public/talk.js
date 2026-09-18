@@ -6,11 +6,16 @@ const mic = document.getElementById("mic");
 const menu = document.getElementById("menu");
 const scrim = document.getElementById("scrim");
 const menuBtn = document.getElementById("menuBtn");
-const modeTag = document.getElementById("modeTag");
+const modeBtn = document.getElementById("modeBtn");
 const hints = document.getElementById("hints");
 const projectsEl = document.getElementById("projects");
+const camBtn = document.getElementById("camBtn");
+const fileBtn = document.getElementById("fileBtn");
+const camInput = document.getElementById("camInput");
+const fileInput = document.getElementById("fileInput");
 let mode = "general";
 let voiceOn = true;
+let attached = "";
 const HINTS = [
   "Who created Quantum Mind?",
   "Explain gravity in simple words",
@@ -19,7 +24,7 @@ const HINTS = [
   "Write a short Python hello program",
   "What is a neural network?"
 ];
-
+let hintI = 0;
 function speak(text) {
   if (!voiceOn || !window.speechSynthesis) return;
   window.speechSynthesis.cancel();
@@ -37,46 +42,34 @@ function add(role, text) {
   return item.querySelector(".bubble");
 }
 function packed(text) {
-  if (mode === "coding") return "Coding mode. Give a short, clear program or explanation.\n" + text;
-  if (mode === "study") return "Study mode. Explain step by step for a student.\n" + text;
-  return text;
+  let extra = text;
+  if (attached) extra += "\n\nAttached file:\n" + attached;
+  if (mode === "coding") return "Coding mode. Give a short program or explanation.\n" + extra;
+  if (mode === "study") return "Study mode. Explain step by step for a student.\n" + extra;
+  return extra;
 }
 async function send(text) {
-  if (!text) return;
-  add("user", text);
+  if (!text && !attached) return;
+  const shown = text || "Sent an attachment.";
+  add("user", shown);
   const pending = add("bot", "Thinking…");
   try {
     const res = await fetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: packed(text) })
+      body: JSON.stringify({ message: packed(text || "Please look at the attached file.") })
     });
     const data = await res.json();
-    const reply = data.reply || data.error || "No reply.";
-    pending.textContent = reply;
-    speak(reply);
+    pending.textContent = data.reply || data.error || "No reply.";
+    speak(pending.textContent);
   } catch (err) {
     pending.textContent = "Core busy. Wait a few seconds.";
   }
+  attached = "";
 }
 function closeMenu() { menu.hidden = true; scrim.hidden = true; }
-function setMode(next) {
-  mode = next;
-  modeTag.textContent = next === "coding" ? "Coding" : next === "study" ? "Study" : "General";
-  closeMenu();
-}
-function renderProjects() {
-  const list = JSON.parse(localStorage.getItem("qmProjects") || "[]");
-  projectsEl.innerHTML = "";
-  list.forEach(function (name) {
-    const row = document.createElement("div");
-    row.className = "project-item";
-    row.textContent = name;
-    projectsEl.appendChild(row);
-  });
-}
-form.addEventListener("submit", function (event) {
-  event.preventDefault();
+form.addEventListener("submit", function (e) {
+  e.preventDefault();
   const text = input.value.trim();
   input.value = "";
   send(text);
@@ -85,11 +78,15 @@ menuBtn.addEventListener("click", function () {
   menu.hidden = !menu.hidden;
   scrim.hidden = menu.hidden;
 });
+modeBtn.addEventListener("click", function () {
+  mode = mode === "general" ? "study" : mode === "study" ? "coding" : "general";
+  modeBtn.textContent = mode === "coding" ? "</>" : mode === "study" ? "▣" : "◈";
+});
 scrim.addEventListener("click", closeMenu);
 menu.addEventListener("click", function (event) {
   const btn = event.target.closest("button");
   if (!btn) return;
-  if (btn.dataset.mode) setMode(btn.dataset.mode);
+  if (btn.dataset.mode) { mode = btn.dataset.mode; closeMenu(); }
   if (btn.dataset.act === "new") {
     log.innerHTML = "";
     add("bot", "New chat. Created by Emmanuel Abraham.");
@@ -98,7 +95,6 @@ menu.addEventListener("click", function (event) {
   if (btn.dataset.act === "voice") {
     voiceOn = !voiceOn;
     btn.textContent = voiceOn ? "Voice on" : "Voice off";
-    if (!voiceOn) window.speechSynthesis.cancel();
   }
   if (btn.dataset.act === "project") {
     const name = window.prompt("Project name");
@@ -106,9 +102,26 @@ menu.addEventListener("click", function (event) {
     const list = JSON.parse(localStorage.getItem("qmProjects") || "[]");
     list.push(name);
     localStorage.setItem("qmProjects", JSON.stringify(list));
-    renderProjects();
+    projectsEl.innerHTML += '<div class="project-item">' + name + "</div>";
   }
 });
+camBtn.addEventListener("click", function () { camInput.click(); });
+fileBtn.addEventListener("click", function () { fileInput.click(); });
+function readFile(file) {
+  if (!file) return;
+  add("user", "Attached: " + file.name);
+  if (file.type.indexOf("image/") === 0) {
+    attached = "[Image file named " + file.name + ". Describe what a student might do with this kind of picture. Do not claim you can see hidden pixels.]";
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = function () {
+    attached = String(reader.result).slice(0, 4000);
+  };
+  reader.readAsText(file);
+}
+camInput.addEventListener("change", function () { readFile(camInput.files[0]); });
+fileInput.addEventListener("change", function () { readFile(fileInput.files[0]); });
 const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
 if (Speech && mic) {
   const rec = new Speech();
@@ -116,23 +129,16 @@ if (Speech && mic) {
   mic.addEventListener("click", function () {
     window.speechSynthesis.cancel();
     rec.start();
-    mic.textContent = "Listening";
+    mic.textContent = "●";
   });
-  rec.onresult = function (event) {
-    mic.textContent = "Mic";
-    send(event.results[0][0].transcript);
-  };
-  rec.onend = function () { mic.textContent = "Mic"; };
+  rec.onresult = function (event) { send(event.results[0][0].transcript); };
 }
-HINTS.forEach(function (text, i) {
-  const el = document.createElement("div");
-  el.className = "hint";
-  el.textContent = text;
-  el.style.animationDelay = (i * 7) + "s";
-  hints.appendChild(el);
-});
-renderProjects();
+setInterval(function () {
+  hints.textContent = HINTS[hintI % HINTS.length];
+  hintI += 1;
+}, 3500);
+hints.textContent = HINTS[0];
 add("bot", "Quantum Mind is ready. Created by Emmanuel Abraham.");
-fetch("/api/chat-status").then(function (res) { return res.json(); }).then(function (data) {
-  statusEl.textContent = data.ready ? "Cloud core online." : "Cloud core waiting.";
+fetch("/api/chat-status").then(function (r) { return r.json(); }).then(function (d) {
+  statusEl.textContent = d.ready ? "Cloud core online." : "Cloud core waiting.";
 }).catch(function () { statusEl.textContent = "Core unreachable."; });

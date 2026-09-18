@@ -11,32 +11,36 @@
 <body class="talk-body">
   <aside id="menu" class="qm-menu" hidden>
     <p class="menu-title">Quantum Mind</p>
-    <button type="button" data-act="new">New chat</button>
+    <button type="button" data-act="new">+ New chat</button>
     <button type="button" data-mode="general">General</button>
     <button type="button" data-mode="study">Study</button>
-    <button type="button" data-mode="coding">Coding mode</button>
+    <button type="button" data-mode="coding">Coding</button>
     <p class="menu-label">Projects</p>
     <div id="projects"></div>
-    <button type="button" data-act="project">Add project</button>
+    <button type="button" data-act="project">+ Add project</button>
     <p class="menu-label">Settings</p>
     <button type="button" data-act="voice">Voice on</button>
     <a href="/">Home</a>
   </aside>
   <div id="scrim" class="scrim" hidden></div>
   <header class="nav talk-nav">
-    <button id="menuBtn" class="icon-btn" type="button">Menu</button>
+    <button id="menuBtn" class="icon-btn" type="button">☰</button>
     <a class="brand" href="/talk.html">QUANTUM MIND</a>
-    <span id="modeTag" class="mode-tag">General</span>
+    <button id="modeBtn" class="icon-btn" type="button">◈</button>
   </header>
   <main class="talk-main talk-main-only">
     <p id="key-status" class="status">Checking core…</p>
     <div id="log" class="log"></div>
-    <div id="hints" class="hints"></div>
-    <form id="ask" class="ask composer">
-      <button id="mic" class="btn ghost" type="button">Mic</button>
-      <input id="q" type="text" maxlength="2000" placeholder="Message Quantum Mind" required />
-      <button class="btn primary" type="submit">Send</button>
+    <p id="hints" class="hints-line"></p>
+    <form id="ask" class="composer">
+      <button id="mic" class="icon-btn" type="button">●</button>
+      <button id="camBtn" class="icon-btn" type="button">📷</button>
+      <button id="fileBtn" class="icon-btn" type="button">📎</button>
+      <input id="q" type="text" maxlength="2000" placeholder="Message Quantum Mind" />
+      <button class="icon-btn send-btn" type="submit">➤</button>
     </form>
+    <input id="camInput" type="file" accept="image/*" capture="environment" hidden />
+    <input id="fileInput" type="file" accept="image/*,.txt,.md,.csv" hidden />
   </main>
   <script src="/talk.js"></script>
 </body>
