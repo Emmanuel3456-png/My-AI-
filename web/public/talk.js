@@ -19,10 +19,10 @@ let voiceOn = true;
 let attached = "";
 const HINTS = [
   "Who created Quantum Mind?",
+  "Write a Python file that prints hello",
   "Explain gravity in simple words",
-  "Help me plan a study timetable",
   "Search the latest news about space",
-  "Write a short Python hello program"
+  "Help me plan a study timetable"
 ];
 let hintI = 0;
 
@@ -41,6 +41,13 @@ function speak(text) {
   window.speechSynthesis.cancel();
   window.speechSynthesis.speak(new SpeechSynthesisUtterance(text));
 }
+function fadeRows() {
+  const rows = log.querySelectorAll(".bubble-row");
+  rows.forEach(function (row, i) {
+    const dist = rows.length - 1 - i;
+    row.style.opacity = dist === 0 ? "1" : dist === 1 ? "0.72" : dist === 2 ? "0.42" : "0.18";
+  });
+}
 function add(role, text) {
   const item = document.createElement("article");
   item.className = "bubble-row " + role;
@@ -50,15 +57,28 @@ function add(role, text) {
   item.querySelector(".bubble").textContent = text;
   log.appendChild(item);
   log.scrollTop = log.scrollHeight;
+  fadeRows();
   return item.querySelector(".bubble");
 }
 function packed(text) {
   let extra = text;
   if (attached) extra += "\n\n" + attached;
-  extra += "\n\nReply in short plain sentences. No markdown, no tables, no dash lines.";
-  if (mode === "coding") return "Coding mode.\n" + extra;
+  extra += "\n\nReply in short plain sentences. No markdown tables. If you write code, include the full file.";
+  if (mode === "coding") return "Coding mode. Write a complete small file.\n" + extra;
   if (mode === "study") return "Study mode. Explain simply.\n" + extra;
   return extra;
+}
+function addDownload(box, raw) {
+  const looksLikeCode = mode === "coding" || /```/.test(raw) || /\b(def |function |print\(|#include|const |let )/i.test(raw);
+  if (!looksLikeCode) return;
+  const code = String(raw).replace(/```[a-z]*\n?/gi, "").replace(/```/g, "").trim();
+  const name = /\bhtml\b|\.html\b/i.test(raw) ? "quantum-mind.html" : /\bpython\b|\.py\b|print\(/i.test(raw) ? "quantum-mind.py" : "quantum-mind.txt";
+  const link = document.createElement("a");
+  link.className = "dl";
+  link.textContent = "Download " + name;
+  link.download = name;
+  link.href = URL.createObjectURL(new Blob([code], { type: "text/plain" }));
+  box.appendChild(link);
 }
 function closePlus() {
   plusMenu.hidden = true;
@@ -75,7 +95,9 @@ async function send(text) {
       body: JSON.stringify({ message: packed(text || "Please look at the attached file.") })
     });
     const data = await res.json();
-    pending.textContent = clean(data.reply || data.error || "No reply.");
+    const raw = data.reply || data.error || "No reply.";
+    pending.textContent = clean(raw);
+    addDownload(pending, raw);
     if (data.image) {
       const pic = document.createElement("img");
       pic.src = data.image;
@@ -164,10 +186,7 @@ function shrinkImage(file) {
 }
 function readFile(file) {
   if (!file) return;
-  if (file.type.indexOf("image/") === 0) {
-    shrinkImage(file);
-    return;
-  }
+  if (file.type.indexOf("image/") === 0) { shrinkImage(file); return; }
   add("user", "File: " + file.name);
   const reader = new FileReader();
   reader.onload = function () { attached = String(reader.result).slice(0, 4000); };
