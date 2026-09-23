@@ -21,10 +21,10 @@ const HINTS = [
   "Explain gravity in simple words",
   "Help me plan a study timetable",
   "Search the latest news about space",
-  "Write a short Python hello program",
-  "What is a neural network?"
+  "Write a short Python hello program"
 ];
 let hintI = 0;
+
 function speak(text) {
   if (!voiceOn || !window.speechSynthesis) return;
   window.speechSynthesis.cancel();
@@ -43,15 +43,14 @@ function add(role, text) {
 }
 function packed(text) {
   let extra = text;
-  if (attached) extra += "\n\nAttached file:\n" + attached;
-  if (mode === "coding") return "Coding mode. Give a short program or explanation.\n" + extra;
-  if (mode === "study") return "Study mode. Explain step by step for a student.\n" + extra;
+  if (attached) extra += "\n\n" + attached;
+  if (mode === "coding") return "Coding mode.\n" + extra;
+  if (mode === "study") return "Study mode. Explain step by step.\n" + extra;
   return extra;
 }
 async function send(text) {
   if (!text && !attached) return;
-  const shown = text || "Sent an attachment.";
-  add("user", shown);
+  add("user", text || "Sent an attachment.");
   const pending = add("bot", "Thinking…");
   try {
     const res = await fetch("/api/chat", {
@@ -61,6 +60,14 @@ async function send(text) {
     });
     const data = await res.json();
     pending.textContent = data.reply || data.error || "No reply.";
+    if (data.image) {
+      const pic = document.createElement("img");
+      pic.src = data.image;
+      pic.style.maxWidth = "180px";
+      pic.style.borderRadius = "8px";
+      pic.style.marginTop = "8px";
+      pending.appendChild(pic);
+    }
     speak(pending.textContent);
   } catch (err) {
     pending.textContent = "Core busy. Wait a few seconds.";
@@ -92,6 +99,17 @@ menu.addEventListener("click", function (event) {
     add("bot", "New chat. Created by Emmanuel Abraham.");
     closeMenu();
   }
+  if (btn.dataset.act === "video") {
+    add("bot", "Starting video…");
+    fetch("/api/video", { method: "POST" })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (d.url) window.open(d.url, "_blank");
+        else add("bot", d.error || "Video did not start.");
+      })
+      .catch(function () { add("bot", "Video did not start."); });
+    closeMenu();
+  }
   if (btn.dataset.act === "voice") {
     voiceOn = !voiceOn;
     btn.textContent = voiceOn ? "Voice on" : "Voice off";
@@ -109,15 +127,24 @@ camBtn.addEventListener("click", function () { camInput.click(); });
 fileBtn.addEventListener("click", function () { fileInput.click(); });
 function readFile(file) {
   if (!file) return;
-  add("user", "Attached: " + file.name);
   if (file.type.indexOf("image/") === 0) {
-    attached = "[Image file named " + file.name + ". Describe what a student might do with this kind of picture. Do not claim you can see hidden pixels.]";
+    const reader = new FileReader();
+    reader.onload = function () {
+      const box = add("user", "Photo: " + file.name);
+      const pic = document.createElement("img");
+      pic.src = reader.result;
+      pic.style.maxWidth = "180px";
+      pic.style.borderRadius = "10px";
+      pic.style.marginTop = "8px";
+      box.appendChild(pic);
+      attached = "The user attached a photo called " + file.name + ".";
+    };
+    reader.readAsDataURL(file);
     return;
   }
+  add("user", "File: " + file.name);
   const reader = new FileReader();
-  reader.onload = function () {
-    attached = String(reader.result).slice(0, 4000);
-  };
+  reader.onload = function () { attached = String(reader.result).slice(0, 4000); };
   reader.readAsText(file);
 }
 camInput.addEventListener("change", function () { readFile(camInput.files[0]); });
@@ -129,7 +156,6 @@ if (Speech && mic) {
   mic.addEventListener("click", function () {
     window.speechSynthesis.cancel();
     rec.start();
-    mic.textContent = "●";
   });
   rec.onresult = function (event) { send(event.results[0][0].transcript); };
 }
