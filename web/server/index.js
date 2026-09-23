@@ -12,11 +12,34 @@ app.get("/api/chat-status", (_req, res) => res.json({
   ready: Boolean(process.env.GROQ_API_KEY),
   search: Boolean(process.env.TAVILY_API_KEY),
   image: Boolean(process.env.OPENAI_API_KEY),
-  video: Boolean(process.env.TAVUS_API_KEY)
+  video: Boolean(process.env.TAVUS_API_KEY && process.env.TAVUS_FACE_ID && process.env.TAVUS_PAL_ID)
 }));
 
-function wantsSearch(t) { return /\b(search|look up|latest|news|current|who won|what happened|today|find online)\b/i.test(t); }
-function wantsImage(t) { return /\b(draw|picture|image|illustration|generate art|make an image)\b/i.test(t); }
+function wantsSearch(t) {
+  return /\b(search|look up|latest|news|current|who won|what happened|today|find online)\b/i.test(t);
+}
+function wantsImage(t) {
+  return /\b(draw|generate art|make an image|create an image)\b/i.test(t);
+}
+
+app.post("/api/video", async (_req, res) => {
+  const key = process.env.TAVUS_API_KEY;
+  const faceId = process.env.TAVUS_FACE_ID;
+  const palId = process.env.TAVUS_PAL_ID;
+  if (!key) return res.json({ error: "TAVUS_API_KEY missing" });
+  if (!faceId || !palId) return res.json({ error: "Add TAVUS_FACE_ID and TAVUS_PAL_ID in Render." });
+  try {
+    const convRes = await fetch("https://tavusapi.com/v2/conversations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-api-key": key },
+      body: JSON.stringify({ face_id: faceId, pal_id: palId, conversation_name: "Quantum Mind" })
+    });
+    const out = await convRes.json();
+    res.json({ url: out.conversation_url, error: out.message || (out.error && out.error.message) });
+  } catch (e) {
+    res.json({ error: "Tavus request failed." });
+  }
+});
 
 app.post("/api/chat", async (req, res) => {
   const key = process.env.GROQ_API_KEY;
@@ -24,27 +47,23 @@ app.post("/api/chat", async (req, res) => {
   if (!message) return res.status(400).json({ error: "Type a question first." });
   if (!key) return res.json({ reply: "Add GROQ_API_KEY in Render." });
   try {
-   if (wantsImage(message) && process.env.OPENAI_API_KEY) {
-      const imgRes = await fetch("https://api.openai.com/v1/images/generations", {
-        method: "POST",
-        headers: {
-          Authorization: "Bearer " + process.env.OPENAI_API_KEY,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          model: "gpt-image-1",
-          prompt: "Family-friendly digital art. " + message,
-          size: "512x512",
-          n: 1
-        })
-      });
-      const img = await imgRes.json();
-      const url = img.data && img.data[0] && img.data[0].url;
-      if (url) return res.json({ reply: "Here is an image.", image: url });
+    if (wantsImage(message)) {
+      if (process.env.OPENAI_API_KEY) {
+        const imgRes = await fetch("https://api.openai.com/v1/images/generations", {
+          method: "POST",
+          headers: { Authorization: "Bearer " + process.env.OPENAI_API_KEY, "Content-Type": "application/json" },
+          body: JSON.stringify({ model: "gpt-image-1", prompt: "Family-friendly digital art. " + message, size: "1024x1024" })
+        });
+        const img = await imgRes.json();
+        const url = img.data && img.data[0] && img.data[0].url;
+        if (url) return res.json({ reply: "Here is an image.", image: url });
+      }
+      const safe = encodeURIComponent("family friendly digital art, " + message.slice(0, 180));
       return res.json({
-        reply: "Image core said: " + ((img.error && img.error.message) || "no image returned")
+        reply: "Here is an image.",
+        image: "https://image.pollinations.ai/prompt/" + safe + "?width=512&height=512&nologo=true"
       });
-    } 
+    }
     let extra = "";
     if (wantsSearch(message) && process.env.TAVILY_API_KEY) {
       const sRes = await fetch("https://api.tavily.com/search", {
@@ -76,5 +95,6 @@ app.post("/api/chat", async (req, res) => {
     res.status(500).json({ error: "Cloud core failed." });
   }
 });
+
 app.get("/api/release", (_req, res) => res.json({ version: "3.0", apk: "/downloads/QuantumMind-3.0.apk" }));
 app.listen(process.env.PORT || 3000, () => console.log("Quantum Mind site up"));
