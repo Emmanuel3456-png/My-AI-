@@ -11,10 +11,11 @@ html, body.talk-body {
   border: 1px solid rgba(150,200,230,0.25);
   background: rgba(8,12,18,0.55);
   color: #d7e8f5;
-  min-height: 34px;
+  min-height: 36px;
+  min-width: 36px;
   padding: 0 10px;
-  border-radius: 8px;
-  font-size: 12px;
+  border-radius: 10px;
+  font-size: 16px;
 }
 .qm-menu {
   position: fixed;
@@ -28,86 +29,28 @@ html, body.talk-body {
   flex-direction: column;
   gap: 8px;
 }
-.qm-menu[hidden], .scrim[hidden] { display: none; }
+.qm-menu[hidden], .scrim[hidden], .plus-menu[hidden], .video-bg[hidden] { display: none; }
 .scrim { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 15; }
 .menu-title { letter-spacing: 0.16em; font-size: 12px; margin: 0 0 8px; }
 .menu-label { color: #8aa0b3; font-size: 11px; margin: 12px 0 4px; }
 .qm-menu button, .qm-menu a {
-  display: block;
-  width: 100%;
-  text-align: left;
-  background: transparent;
-  color: #e8eaed;
-  border: 0;
-  border-radius: 8px;
-  padding: 10px 8px;
-  font-size: 14px;
+  display: block; width: 100%; text-align: left; background: transparent;
+  color: #e8eaed; border: 0; border-radius: 8px; padding: 10px 8px; font-size: 14px;
 }
 .talk-main-only {
-  display: flex;
-  flex-direction: column;
-  min-height: calc(100vh - 64px);
-  padding: 8px 12px 0;
+  display: flex; flex-direction: column; min-height: calc(100vh - 64px); padding: 8px 12px 0;
 }
 .status { color: #9ec9e8; font-size: 12px; }
-.log {
-  flex: 1;
-  overflow: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
+.log { flex: 1; overflow: auto; display: flex; flex-direction: column; gap: 8px; }
 .bubble-row { display: flex; align-items: flex-end; gap: 8px; max-width: 86%; }
 .bubble-row.bot { align-self: flex-start; }
 .bubble-row.user { align-self: flex-end; }
-.bubble { padding: 10px 14px; border-radius: 16px; line-height: 1.45; font-size: 15px; }
-.bubble-row.bot .bubble {
-  background: rgba(20, 90, 150, 0.55);
-  color: #eef7ff;
-  border-bottom-left-radius: 4px;
-}
-.bubble-row.user .bubble {
-  background: #d7e8f5;
-  color: #0b1220;
-  border-bottom-right-radius: 4px;
-}
-img.logo {
-  width: 28px !important;
-  height: 28px !important;
-  max-width: 28px !important;
-  border-radius: 50%;
-  object-fit: cover;
-}
-.hints { height: 36px; overflow: hidden; position: relative; margin-bottom: 6px; }
-.hint {
-  position: absolute; left: 0; right: 0;
-  color: #b7d3ea; font-size: 13px; opacity: 0;
-  animation: hintRise 7s ease-in-out infinite;
-}
-@keyframes hintRise {
-  0% { opacity: 0; transform: translateY(18px); }
-  15% { opacity: 1; transform: translateY(0); }
-  70% { opacity: 1; transform: translateY(0); }
-  100% { opacity: 0; transform: translateY(-14px); }
-}
-.composer { display: flex; gap: 8px; padding: 10px 0 16px; align-items: center; }
-.composer input {
-  flex: 1; min-height: 46px; font-size: 16px;
-  background: rgba(8,12,18,0.82); color: #e8eaed;
-  border: 1px solid rgba(150,200,230,0.35);
-  border-radius: 22px; padding: 0 14px;
-}
-.project-item { font-size: 13px; color: #9ec9e8; padding: 6px 8px; }
-.hints-line {
-  min-height: 22px;
-  margin: 0 0 8px;
-  color: #b7d3ea;
-  font-size: 13px;
-  opacity: 0.85;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+.bubble { padding: 10px 14px; border-radius: 16px; line-height: 1.45; font-size: 15px; white-space: pre-wrap; }
+.bubble-row.bot .bubble { background: rgba(20, 90, 150, 0.55); color: #eef7ff; border-bottom-left-radius: 4px; }
+.bubble-row.user .bubble { background: #d7e8f5; color: #0b1220; border-bottom-right-radius: 4px; }
+img.logo { width: 28px !important; height: 28px !important; max-width: 28px !important; border-radius: 50%; object-fit: cover; }
+.hints-line { min-height: 22px; margin: 0 0 8px; color: #b7d3ea; font-size: 13px; }
+.composer-wrap { position: relative; }
 .composer { display: flex; gap: 6px; padding: 10px 0 16px; align-items: center; }
 .composer input {
   flex: 1; min-height: 44px; font-size: 16px;
@@ -116,4 +59,16 @@ img.logo {
   border-radius: 22px; padding: 0 12px;
 }
 .send-btn { background: #d7e8f5; color: #0b1220; }
-.attach-note { font-size: 12px; color: #9ec9e8; }
+.plus-menu {
+  position: absolute; left: 0; bottom: 58px;
+  background: #12181f; border: 1px solid rgba(150,200,230,0.25);
+  border-radius: 12px; min-width: 160px; z-index: 5;
+}
+.plus-menu button {
+  display: block; width: 100%; text-align: left; background: transparent;
+  color: #e8eaed; border: 0; padding: 12px 14px;
+}
+.video-bg { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; z-index: 0; }
+.talk-body.video-on { background: #07090c; }
+.talk-body.video-on .nav, .talk-body.video-on .talk-main-only { position: relative; z-index: 2; }
+.project-item { font-size: 13px; color: #9ec9e8; padding: 6px 8px; }

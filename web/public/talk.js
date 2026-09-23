@@ -9,9 +9,10 @@ const menuBtn = document.getElementById("menuBtn");
 const modeBtn = document.getElementById("modeBtn");
 const hints = document.getElementById("hints");
 const projectsEl = document.getElementById("projects");
-const camBtn = document.getElementById("camBtn");
-const fileBtn = document.getElementById("fileBtn");
+const plusBtn = document.getElementById("plusBtn");
+const plusMenu = document.getElementById("plusMenu");
 const camInput = document.getElementById("camInput");
+const galInput = document.getElementById("galInput");
 const fileInput = document.getElementById("fileInput");
 let mode = "general";
 let voiceOn = true;
@@ -25,6 +26,16 @@ const HINTS = [
 ];
 let hintI = 0;
 
+function clean(text) {
+  return String(text)
+    .replace(/\*\*/g, "")
+    .replace(/###/g, "")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/\|/g, " ")
+    .replace(/-{3,}/g, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
 function speak(text) {
   if (!voiceOn || !window.speechSynthesis) return;
   window.speechSynthesis.cancel();
@@ -44,8 +55,9 @@ function add(role, text) {
 function packed(text) {
   let extra = text;
   if (attached) extra += "\n\n" + attached;
+  extra += "\n\nReply in short plain sentences. No markdown, no tables, no dash lines.";
   if (mode === "coding") return "Coding mode.\n" + extra;
-  if (mode === "study") return "Study mode. Explain step by step.\n" + extra;
+  if (mode === "study") return "Study mode. Explain simply.\n" + extra;
   return extra;
 }
 async function send(text) {
@@ -59,7 +71,7 @@ async function send(text) {
       body: JSON.stringify({ message: packed(text || "Please look at the attached file.") })
     });
     const data = await res.json();
-    pending.textContent = data.reply || data.error || "No reply.";
+    pending.textContent = clean(data.reply || data.error || "No reply.");
     if (data.image) {
       const pic = document.createElement("img");
       pic.src = data.image;
@@ -79,6 +91,7 @@ form.addEventListener("submit", function (e) {
   e.preventDefault();
   const text = input.value.trim();
   input.value = "";
+  plusMenu.hidden = true;
   send(text);
 });
 menuBtn.addEventListener("click", function () {
@@ -90,6 +103,10 @@ modeBtn.addEventListener("click", function () {
   modeBtn.textContent = mode === "coding" ? "</>" : mode === "study" ? "▣" : "◈";
 });
 scrim.addEventListener("click", closeMenu);
+plusBtn.addEventListener("click", function () { plusMenu.hidden = !plusMenu.hidden; });
+document.getElementById("camBtn").addEventListener("click", function () { plusMenu.hidden = true; camInput.click(); });
+document.getElementById("galBtn").addEventListener("click", function () { plusMenu.hidden = true; galInput.click(); });
+document.getElementById("fileBtn").addEventListener("click", function () { plusMenu.hidden = true; fileInput.click(); });
 menu.addEventListener("click", function (event) {
   const btn = event.target.closest("button");
   if (!btn) return;
@@ -100,14 +117,19 @@ menu.addEventListener("click", function (event) {
     closeMenu();
   }
   if (btn.dataset.act === "video") {
-    add("bot", "Starting video…");
+    add("bot", "Starting video background…");
     fetch("/api/video", { method: "POST" })
       .then(function (r) { return r.json(); })
       .then(function (d) {
-        if (d.url) window.open(d.url, "_blank");
-        else add("bot", d.error || "Video did not start.");
-      })
-      .catch(function () { add("bot", "Video did not start."); });
+        if (d.url) {
+          const frame = document.getElementById("videoBg");
+          frame.src = d.url;
+          frame.hidden = false;
+          document.body.classList.add("video-on");
+        } else {
+          add("bot", d.error || "Video did not start.");
+        }
+      });
     closeMenu();
   }
   if (btn.dataset.act === "voice") {
@@ -123,8 +145,6 @@ menu.addEventListener("click", function (event) {
     projectsEl.innerHTML += '<div class="project-item">' + name + "</div>";
   }
 });
-camBtn.addEventListener("click", function () { camInput.click(); });
-fileBtn.addEventListener("click", function () { fileInput.click(); });
 function readFile(file) {
   if (!file) return;
   if (file.type.indexOf("image/") === 0) {
@@ -148,6 +168,7 @@ function readFile(file) {
   reader.readAsText(file);
 }
 camInput.addEventListener("change", function () { readFile(camInput.files[0]); });
+galInput.addEventListener("change", function () { readFile(galInput.files[0]); });
 fileInput.addEventListener("change", function () { readFile(fileInput.files[0]); });
 const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
 if (Speech && mic) {
