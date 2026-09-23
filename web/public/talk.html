@@ -9,11 +9,9 @@
   <link rel="stylesheet" href="/talk.css" />
 </head>
 <body class="talk-body">
-  <iframe id="videoBg" class="video-bg" title="Quantum Mind video" hidden></iframe>
   <aside id="menu" class="qm-menu" hidden>
     <p class="menu-title">Quantum Mind</p>
     <button type="button" data-act="new">New chat</button>
-    <button type="button" data-act="video">Video background</button>
     <button type="button" data-mode="general">General</button>
     <button type="button" data-mode="study">Study</button>
     <button type="button" data-mode="coding">Coding</button>
@@ -36,6 +34,7 @@
     <p id="hints" class="hints-line"></p>
     <div class="composer-wrap">
       <div id="plusMenu" class="plus-menu" hidden>
+        <button type="button" id="mic">Mic</button>
         <button type="button" id="camBtn">Camera</button>
         <button type="button" id="galBtn">Gallery</button>
         <button type="button" id="fileBtn">Files</button>
@@ -43,7 +42,6 @@
       <form id="ask" class="composer">
         <button id="plusBtn" class="icon-btn" type="button">+</button>
         <input id="q" type="text" maxlength="2000" placeholder="Message Quantum Mind" />
-        <button id="mic" class="icon-btn" type="button">●</button>
         <button class="icon-btn send-btn" type="submit">➤</button>
       </form>
     </div>

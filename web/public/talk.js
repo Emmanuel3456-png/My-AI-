@@ -60,6 +60,10 @@ function packed(text) {
   if (mode === "study") return "Study mode. Explain simply.\n" + extra;
   return extra;
 }
+function closePlus() {
+  plusMenu.hidden = true;
+  plusBtn.textContent = "+";
+}
 async function send(text) {
   if (!text && !attached) return;
   add("user", text || "Sent an attachment.");
@@ -91,7 +95,7 @@ form.addEventListener("submit", function (e) {
   e.preventDefault();
   const text = input.value.trim();
   input.value = "";
-  plusMenu.hidden = true;
+  closePlus();
   send(text);
 });
 menuBtn.addEventListener("click", function () {
@@ -103,10 +107,13 @@ modeBtn.addEventListener("click", function () {
   modeBtn.textContent = mode === "coding" ? "</>" : mode === "study" ? "▣" : "◈";
 });
 scrim.addEventListener("click", closeMenu);
-plusBtn.addEventListener("click", function () { plusMenu.hidden = !plusMenu.hidden; });
-document.getElementById("camBtn").addEventListener("click", function () { plusMenu.hidden = true; camInput.click(); });
-document.getElementById("galBtn").addEventListener("click", function () { plusMenu.hidden = true; galInput.click(); });
-document.getElementById("fileBtn").addEventListener("click", function () { plusMenu.hidden = true; fileInput.click(); });
+plusBtn.addEventListener("click", function () {
+  plusMenu.hidden = !plusMenu.hidden;
+  plusBtn.textContent = plusMenu.hidden ? "+" : "×";
+});
+document.getElementById("camBtn").addEventListener("click", function () { closePlus(); camInput.click(); });
+document.getElementById("galBtn").addEventListener("click", function () { closePlus(); galInput.click(); });
+document.getElementById("fileBtn").addEventListener("click", function () { closePlus(); fileInput.click(); });
 menu.addEventListener("click", function (event) {
   const btn = event.target.closest("button");
   if (!btn) return;
@@ -114,22 +121,6 @@ menu.addEventListener("click", function (event) {
   if (btn.dataset.act === "new") {
     log.innerHTML = "";
     add("bot", "New chat. Created by Emmanuel Abraham.");
-    closeMenu();
-  }
-  if (btn.dataset.act === "video") {
-    add("bot", "Starting video background…");
-    fetch("/api/video", { method: "POST" })
-      .then(function (r) { return r.json(); })
-      .then(function (d) {
-        if (d.url) {
-          const frame = document.getElementById("videoBg");
-          frame.src = d.url;
-          frame.hidden = false;
-          document.body.classList.add("video-on");
-        } else {
-          add("bot", d.error || "Video did not start.");
-        }
-      });
     closeMenu();
   }
   if (btn.dataset.act === "voice") {
@@ -145,21 +136,36 @@ menu.addEventListener("click", function (event) {
     projectsEl.innerHTML += '<div class="project-item">' + name + "</div>";
   }
 });
+function showPhoto(name, dataUrl) {
+  const box = add("user", "Photo: " + name);
+  const pic = document.createElement("img");
+  pic.src = dataUrl;
+  pic.style.maxWidth = "180px";
+  pic.style.borderRadius = "10px";
+  pic.style.marginTop = "8px";
+  box.appendChild(pic);
+  attached = "The user attached a photo called " + name + ".";
+}
+function shrinkImage(file) {
+  const reader = new FileReader();
+  reader.onload = function () {
+    const img = new Image();
+    img.onload = function () {
+      const scale = Math.min(800 / img.width, 800 / img.height, 1);
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(img.width * scale));
+      canvas.height = Math.max(1, Math.round(img.height * scale));
+      canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+      showPhoto(file.name, canvas.toDataURL("image/jpeg", 0.7));
+    };
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+}
 function readFile(file) {
   if (!file) return;
   if (file.type.indexOf("image/") === 0) {
-    const reader = new FileReader();
-    reader.onload = function () {
-      const box = add("user", "Photo: " + file.name);
-      const pic = document.createElement("img");
-      pic.src = reader.result;
-      pic.style.maxWidth = "180px";
-      pic.style.borderRadius = "10px";
-      pic.style.marginTop = "8px";
-      box.appendChild(pic);
-      attached = "The user attached a photo called " + file.name + ".";
-    };
-    reader.readAsDataURL(file);
+    shrinkImage(file);
     return;
   }
   add("user", "File: " + file.name);
@@ -175,6 +181,7 @@ if (Speech && mic) {
   const rec = new Speech();
   rec.lang = "en-US";
   mic.addEventListener("click", function () {
+    closePlus();
     window.speechSynthesis.cancel();
     rec.start();
   });
