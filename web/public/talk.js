@@ -14,6 +14,8 @@ const plusMenu = document.getElementById("plusMenu");
 const camInput = document.getElementById("camInput");
 const galInput = document.getElementById("galInput");
 const fileInput = document.getElementById("fileInput");
+const face = document.querySelector(".face-bg");
+const main = document.querySelector(".talk-main-only");
 let mode = "general";
 let voiceOn = true;
 let attached = "";
@@ -21,8 +23,7 @@ const HINTS = [
   "Who created Quantum Mind?",
   "Write a Python file that prints hello",
   "Explain gravity in simple words",
-  "Search the latest news about space",
-  "Help me plan a study timetable"
+  "Search the latest news about space"
 ];
 let hintI = 0;
 
@@ -205,6 +206,16 @@ if (Speech && mic) {
     rec.start();
   });
   rec.onresult = function (event) { send(event.results[0][0].transcript); };
+}
+if (face) face.style.height = window.innerHeight + "px";
+function pinBar() {
+  if (!window.visualViewport || !main) return;
+  const vv = window.visualViewport;
+  main.style.bottom = Math.max(0, window.innerHeight - vv.height - vv.offsetTop) + "px";
+}
+if (window.visualViewport) {
+  window.visualViewport.addEventListener("resize", pinBar);
+  window.visualViewport.addEventListener("scroll", pinBar);
 }
 setInterval(function () {
   hints.textContent = HINTS[hintI % HINTS.length];

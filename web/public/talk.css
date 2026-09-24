@@ -2,17 +2,22 @@ html, body.talk-body {
   margin: 0;
   height: 100%;
   overflow: hidden;
-  background:
-    linear-gradient(180deg, rgba(6,10,16,0.45), rgba(6,10,16,0.62)),
-    url("/assets/core.jpg") center top / cover no-repeat fixed;
+  background: #07090c;
   color: #e8eaed;
 }
-.talk-nav {
+.face-bg {
   position: fixed;
-  top: 0; left: 0; right: 0;
-  z-index: 6;
-  gap: 10px;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background:
+    linear-gradient(180deg, rgba(6,10,16,0.4), rgba(6,10,16,0.55)),
+    url("/assets/core.jpg") center top / cover no-repeat;
+  z-index: -1;
+  pointer-events: none;
 }
+.talk-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 6; gap: 10px; }
 .icon-btn {
   border: 1px solid rgba(150,200,230,0.25);
   background: rgba(8,12,18,0.55);
@@ -33,27 +38,17 @@ html, body.talk-body {
   color: #e8eaed; border: 0; border-radius: 8px; padding: 10px 8px; font-size: 14px;
 }
 .talk-main-only {
-  position: fixed;
-  left: 0; right: 0; bottom: 0;
+  position: fixed; left: 0; right: 0; bottom: 0;
   padding: 0 12px 8px;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
+  display: flex; flex-direction: column; justify-content: flex-end;
 }
 .status {
-  position: fixed;
-  left: 16px;
-  bottom: 42%;
-  color: #9ec9e8;
-  font-size: 12px;
+  position: fixed; left: 16px; bottom: 42%;
+  color: #9ec9e8; font-size: 12px;
 }
 .log {
-  height: 28vh;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  gap: 8px;
+  height: 28vh; overflow: hidden; display: flex; flex-direction: column;
+  justify-content: flex-end; gap: 8px;
   mask-image: linear-gradient(to bottom, transparent, #000 30%, #000 100%);
 }
 .bubble-row { display: flex; align-items: flex-end; gap: 8px; max-width: 86%; }
